@@ -1,0 +1,42 @@
+{
+  "ovs_database": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["uuid", "bridges"],
+    "properties": {
+      "uuid": { "type": "string" },
+      "bridges": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "ovs_bridge": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["uuid", "datapath_type", "ports"],
+    "properties": {
+      "uuid": { "type": "string" },
+      "datapath_type": { "type": "string" },
+      "ports": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "ovs_port": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["uuid", "interfaces"],
+    "properties": {
+      "uuid": { "type": "string" },
+      "bridge": { "type": "string" },
+      "interfaces": { "type": "array", "items": { "type": "string" } }
+    }
+  },
+  "ovs_interface": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["uuid", "type"],
+    "properties": {
+      "uuid": { "type": "string" },
+      "bridge": { "type": "string" },
+      "port": { "type": "string" },
+      "type": { "type": "string" }
+    }
+  }
+}

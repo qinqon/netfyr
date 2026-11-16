@@ -1,0 +1,66 @@
+package netfyr:plugin@0.1.0;
+
+/// Records are collected by the host; guests have no stdout or stderr.
+interface host-log {
+    enum level { trace, debug, info, warn, error }
+    log: func(level: level, message: string);
+}
+
+/// Restricts endpoints, not the application protocol sent to them.
+interface host-unix-socket {
+    variant connect-error {
+        not-declared,
+        not-found,
+        permission-denied,
+        refused,
+        other(string),
+    }
+
+    resource connection {
+        /// Writes all bytes or fails.
+        write: func(data: list<u8>) -> result<_, string>;
+        /// Reads at most max bytes. An empty list means EOF.
+        read: func(max: u32) -> result<list<u8>, string>;
+    }
+
+    connect: func(path: string) -> result<connection, connect-error>;
+}
+
+interface observation {
+    record device {
+        name: string,
+        device-type: string,
+        /// An object containing only the declared device-type's sub-object.
+        /// The host supplies name, source and match metadata.
+        fields-json: string,
+    }
+    record diagnostic {
+        device-name: option<string>,
+        field: option<string>,
+        message: string,
+    }
+    enum failure-kind {
+        permission-denied,
+        unreachable,
+        deadline-exceeded,
+        unsupported,
+        undecodable,
+    }
+    record failure {
+        kind: failure-kind,
+        message: string,
+    }
+    record snapshot {
+        devices: list<device>,
+        diagnostics: list<diagnostic>,
+    }
+
+    /// Opaque, plugin-specific configuration, independent of host Rust types.
+    query: func(config-json: string) -> result<snapshot, failure>;
+}
+
+world observer {
+    import host-log;
+    import host-unix-socket;
+    export observation;
+}

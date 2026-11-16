@@ -1,0 +1,17 @@
+[package]
+name = "netfyr-plugin-test-guest"
+description = "Deliberately failing components for plugin host acceptance tests"
+publish = false
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version = "1.96"
+
+[lib]
+crate-type = ["cdylib"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# wit-bindgen: construct a real component with the same ABI as production guests.
+wit-bindgen = { version = "=0.63.0", default-features = false, features = ["macros", "realloc"] }
+# dlmalloc: allocate WIT strings without granting the fixture WASI access.
+dlmalloc = { version = "0.2.14", features = ["global"] }

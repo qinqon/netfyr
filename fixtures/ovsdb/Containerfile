@@ -1,0 +1,11 @@
+FROM docker.io/library/debian:bookworm-slim
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends openvswitch-switch \
+    && rm -rf /var/lib/apt/lists/*
+# Debian ships the OVS binaries but not the tutorial's sandbox launcher.
+# Pin and verify the upstream script matching Debian 12's OVS 3.1 series.
+ADD https://raw.githubusercontent.com/openvswitch/ovs/v3.1.0/tutorial/ovs-sandbox /usr/local/bin/ovs-sandbox
+RUN echo '1470b4c96d4e684626e57be0de7c514da455e33f117b132124d42b0113543d09  /usr/local/bin/ovs-sandbox' | sha256sum -c -
+COPY start.sh /usr/local/bin/start-ovsdb
+COPY --chmod=755 populate.sh /usr/local/bin/populate-ovs-fixture
+ENTRYPOINT ["/bin/bash", "/usr/local/bin/start-ovsdb"]

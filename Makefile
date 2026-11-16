@@ -1,10 +1,14 @@
-.PHONY: test fmt clippy hooks docs
+.PHONY: test test-plugins fmt clippy hooks docs
 
 # make exports a command-line TAGS into the recipe environment, which the runner
 # reads. Interpolating it into the command line instead would let a tag containing
 # a quote run as shell.
 test:
 	@scripts/run-tests.sh
+
+# Requires wasm32-wasip2, a container engine and Python PyYAML.
+test-plugins:
+	@TESTS_DIR="$(CURDIR)/tests/integration/plugins" scripts/run-tests.sh
 
 fmt:
 	cargo fmt

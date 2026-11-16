@@ -1,0 +1,24 @@
+[package]
+name = "netfyr-ovs"
+description = "Experimental read-only OVSDB WebAssembly observer"
+publish = false
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+# The PoC's component toolchain is tested together with the Wasmtime 49 host.
+rust-version = "1.96"
+repository.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# serde_json: RFC 7047 JSON-RPC and the plugin's independent wire data format.
+# alloc-only keeps the guest free of ambient WASI imports.
+serde_json = { version = "1", default-features = false, features = ["alloc"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# wit-bindgen: generate the guest side of the versioned component interface.
+wit-bindgen = { version = "=0.63.0", default-features = false, features = ["macros", "realloc"] }
+# dlmalloc: an allocator using WebAssembly linear memory, without WASI calls.
+dlmalloc = { version = "0.2.14", features = ["global"] }
