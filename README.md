@@ -23,9 +23,10 @@ make test TAGS=ipv4,routing    # integration tests tagged ipv4 OR routing
 make test TAGS=ipv4+routing    # integration tests tagged ipv4 AND routing
 ```
 
-The workspace's first crate is `netfyr-state`, a library, so `cargo test` runs its
-unit tests now; the shell suite under `make test` will exercise the CLI once a later
-story lands one.
+The experimental [OVS WebAssembly plugin PoC](docs/plugin-poc.md) adds a read-only
+query example and a separate precompiler. Its crates require Rust 1.96 or newer.
+Run `make test-plugins` for the component integration tests against a private
+`ovs-sandbox` fixture (requires `wasm32-wasip2`, Podman or Docker, and Python PyYAML).
 
 ## API documentation
 
