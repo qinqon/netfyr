@@ -36,6 +36,8 @@ contract and validation. Wasm is the only production loader; a future trusted
 native implementation can fit behind the same API.
 Run `make test-plugins` for the component integration tests against a private
 `ovs-sandbox` fixture (requires `wasm32-wasip2`, Podman or Docker, and Python PyYAML).
+Run `scripts/measure-wasm-overhead.sh` for native-reference versus Wasm wall-time,
+CPU-time and peak-RSS measurements; methodology and results are in the PoC doc.
 
 ## API documentation
 
