@@ -1,0 +1,9 @@
+{
+  "example_device": {
+    "type": "object",
+    "required": ["value"],
+    "properties": {
+      "value": { "type": "string" }
+    }
+  }
+}

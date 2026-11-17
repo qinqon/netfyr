@@ -10,16 +10,24 @@ rust-version = "1.96"
 repository.workspace = true
 
 [features]
-default = ["compile"]
+# Query hosts load artifacts produced by the install-time precompiler.
+default = []
+# Opt in only for the compile-on-load comparison or the precompilation tool.
 compile = ["wasmtime/cranelift"]
-pulley = ["wasmtime/pulley"]
 
 [dependencies]
+netfyr-plugin-api = { path = "../netfyr-plugin-api" }
 netfyr-state = { path = "../netfyr-state" }
 # wasmtime: component validation, WIT bindings, execution limits and isolation.
 wasmtime.workspace = true
 # serde_json: decode the language-independent plugin result and schema format.
 serde_json = "1"
+# serde: typed static provider and installed metadata, without executing guests.
+serde = { version = "1", features = ["derive"] }
+# serde_yaml: read operator instance drop-ins using the existing netfyr YAML format.
+serde_yaml = "0.9"
+# sha2: bind local artifacts to their descriptor before unsafe deserialization.
+sha2 = "0.10"
 # tokio: deadline-bounded Unix socket connect/read/write, including partial I/O.
 tokio = { version = "1", features = ["rt", "net", "time", "io-util"] }
 

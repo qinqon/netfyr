@@ -7,7 +7,7 @@ mod wasm;
 #[cfg(target_arch = "wasm32")]
 mod component {
     extern crate alloc;
-    use alloc::string::String;
+    use alloc::string::{String, ToString};
     use alloc::vec;
 
     wit_bindgen::generate!({
@@ -20,18 +20,32 @@ mod component {
 
     impl Guest for Fixture {
         fn query(config: String) -> Result<Snapshot, Failure> {
-            match config.as_str() {
+            let config: serde_json::Value = serde_json::from_str(&config).map_err(|_| Failure {
+                kind: FailureKind::Undecodable,
+                message: "invalid configuration".into(),
+            })?;
+            match config
+                .get("mode")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or("ok")
+            {
+                "ok" => Ok(Snapshot {
+                    devices: vec![Device {
+                        name: "example0".into(),
+                        device_type: "example_device".into(),
+                        fields_json: serde_json::json!({"example_device":{"value":config.get("endpoint").and_then(serde_json::Value::as_str).unwrap_or("0123")}}).to_string(),
+                    }],
+                    diagnostics: vec![],
+                }),
                 "trap" => core::arch::wasm32::unreachable(),
                 "loop" => loop {
                     core::hint::spin_loop();
                 },
                 "bad-schema" => Ok(Snapshot {
                     devices: vec![Device {
-                        name: "br0".into(),
-                        device_type: "ovs_bridge".into(),
-                        fields_json:
-                            r#"{"ovs_bridge":{"uuid":12,"datapath_type":"system","ports":[]}}"#
-                                .into(),
+                        name: "example0".into(),
+                        device_type: "example_device".into(),
+                        fields_json: r#"{"example_device":{"value":12}}"#.into(),
                     }],
                     diagnostics: vec![],
                 }),

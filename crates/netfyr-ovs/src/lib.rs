@@ -7,6 +7,8 @@
 
 extern crate alloc;
 
+#[cfg(any(test, target_arch = "wasm32"))]
+mod config;
 mod protocol;
 mod topology;
 #[cfg(target_arch = "wasm32")]
@@ -17,6 +19,7 @@ pub use topology::{Device, Diagnostic, Snapshot};
 
 #[cfg(target_arch = "wasm32")]
 mod component {
+    use alloc::format;
     use alloc::string::{String, ToString};
     use alloc::vec::Vec;
 
@@ -65,13 +68,14 @@ mod component {
     }
 
     fn query(config: &str) -> Result<wire::Snapshot, Failure> {
-        let config: serde_json::Value = serde_json::from_str(config)
-            .map_err(|_| Failure::unsupported("invalid OVS configuration JSON"))?;
-        let endpoint = config
-            .get("endpoint")
-            .and_then(serde_json::Value::as_str)
-            .filter(|path| !path.is_empty())
-            .ok_or_else(|| Failure::unsupported("configuration needs an endpoint path"))?;
+        let endpoint = crate::config::endpoint(config)?;
+        query_endpoint(&endpoint).map_err(|failure| Failure {
+            kind: failure.kind,
+            message: format!("OVSDB endpoint {endpoint:?}: {}", failure.message),
+        })
+    }
+
+    fn query_endpoint(endpoint: &str) -> Result<wire::Snapshot, Failure> {
         host_log::log(host_log::Level::Debug, "reading an OVSDB snapshot");
         let connection = host_unix_socket::connect(endpoint).map_err(|error| {
             use host_unix_socket::ConnectError;

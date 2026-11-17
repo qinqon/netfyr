@@ -24,7 +24,16 @@ make test TAGS=ipv4+routing    # integration tests tagged ipv4 AND routing
 ```
 
 The experimental [OVS WebAssembly plugin PoC](docs/plugin-poc.md) adds a read-only
-query example and a separate precompiler. Its crates require Rust 1.96 or newer.
+query example and a separate install-time native precompiler. Providers ship a
+portable `.wasm`; the runtime-only host loads its locally precompiled `.cwasm`.
+Static plugin metadata supplies identity and schemas automatically; installation
+emits a descriptor associating them with the native artifact's digest.
+The example discovers instance settings from `plugin.d` tiers under `/usr/lib`,
+`/etc` and `/run/netfyr`, with isolated configuration and grants for each instance.
+The Wasm-specific crates require Rust 1.96 or newer.
+The Wasmtime-independent `netfyr-plugin-api` defines the common observer
+contract and validation. Wasm is the only production loader; a future trusted
+native implementation can fit behind the same API.
 Run `make test-plugins` for the component integration tests against a private
 `ovs-sandbox` fixture (requires `wasm32-wasip2`, Podman or Docker, and Python PyYAML).
 

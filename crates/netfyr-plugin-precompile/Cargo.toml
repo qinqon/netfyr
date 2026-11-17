@@ -9,9 +9,6 @@ license.workspace = true
 rust-version = "1.96"
 repository.workspace = true
 
-[features]
-pulley = ["netfyr-plugin-runtime/pulley"]
-
 [dependencies]
 netfyr-plugin-runtime = { path = "../netfyr-plugin-runtime", default-features = false, features = ["compile"] }
 # wasmtime: precompile a portable component with the host's exact configuration.

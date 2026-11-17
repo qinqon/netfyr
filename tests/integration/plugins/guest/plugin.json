@@ -1,0 +1,14 @@
+{
+  "format-version": 1,
+  "id": "example",
+  "interface": "netfyr:plugin/observer@0.1.0",
+  "schemas-file": "schemas.json",
+  "config-schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "endpoint": { "type": "string" },
+      "mode": { "type": "string", "enum": ["ok", "trap", "loop", "bad-schema"] }
+    }
+  }
+}

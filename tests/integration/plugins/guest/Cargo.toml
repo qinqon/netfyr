@@ -15,3 +15,5 @@ crate-type = ["cdylib"]
 wit-bindgen = { version = "=0.63.0", default-features = false, features = ["macros", "realloc"] }
 # dlmalloc: allocate WIT strings without granting the fixture WASI access.
 dlmalloc = { version = "0.2.14", features = ["global"] }
+# serde_json: exercise schema-validated object configuration over the real ABI.
+serde_json = { version = "1", default-features = false, features = ["alloc"] }

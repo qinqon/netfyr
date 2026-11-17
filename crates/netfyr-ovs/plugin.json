@@ -1,0 +1,13 @@
+{
+  "format-version": 1,
+  "id": "ovs",
+  "interface": "netfyr:plugin/observer@0.1.0",
+  "schemas-file": "schemas.json",
+  "config-schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "endpoint": { "type": "string" }
+    }
+  }
+}

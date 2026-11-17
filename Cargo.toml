@@ -6,6 +6,7 @@ members = [
     "crates/netfyr-backend",
     "crates/netfyr-reconcile",
     "crates/netfyr-plugin-runtime",
+    "crates/netfyr-plugin-api",
     "crates/netfyr-plugin-precompile",
     "crates/netfyr-ovs",
     "tests/integration/probe",

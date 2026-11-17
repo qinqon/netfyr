@@ -704,6 +704,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "netfyr-plugin-api"
+version = "0.1.0"
+dependencies = [
+ "netfyr-state",
+ "serde_json",
+]
+
+[[package]]
 name = "netfyr-plugin-precompile"
 version = "0.1.0"
 dependencies = [
@@ -716,8 +724,12 @@ name = "netfyr-plugin-runtime"
 version = "0.1.0"
 dependencies = [
  "netfyr-backend",
+ "netfyr-plugin-api",
  "netfyr-state",
+ "serde",
  "serde_json",
+ "serde_yaml",
+ "sha2",
  "tokio",
  "wasmtime",
 ]
@@ -727,6 +739,7 @@ name = "netfyr-plugin-test-guest"
 version = "0.1.0"
 dependencies = [
  "dlmalloc",
+ "serde_json",
  "wit-bindgen",
 ]
 

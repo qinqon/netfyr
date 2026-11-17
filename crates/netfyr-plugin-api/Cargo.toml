@@ -1,0 +1,14 @@
+[package]
+name = "netfyr-plugin-api"
+description = "Execution-independent observer contract and validation for the plugin PoC"
+publish = false
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+netfyr-state = { path = "../netfyr-state" }
+# serde_json: independent configuration and field-JSON contract, not a Wasm ABI.
+serde_json = "1"

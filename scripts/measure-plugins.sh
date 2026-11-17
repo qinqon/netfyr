@@ -22,30 +22,43 @@ build() {
         >"$artifacts/build-$variant.jsonl"
 }
 build baseline -p netfyr-backend --example query-kernel
-build compile -p netfyr-plugin-runtime --example query-with-plugins
+build compile -p netfyr-plugin-runtime --example query-with-plugins --features compile
 build native -p netfyr-plugin-runtime --example query-with-plugins --no-default-features
-build pulley -p netfyr-plugin-runtime --example query-with-plugins --no-default-features --features pulley
-build precompile -p netfyr-plugin-precompile --features pulley
+build precompile -p netfyr-plugin-precompile
 cargo build --locked --release -p netfyr-ovs --target wasm32-wasip2 --target-dir "$target_dir/guest"
 guest="$target_dir/guest/wasm32-wasip2/release/netfyr_ovs.wasm"
 compiler="$output/precompile/release/netfyr-plugin-precompile"
-"$compiler" "$guest" --output "$artifacts/ovs-native.cwasm"
-"$compiler" "$guest" --pulley --output "$artifacts/ovs-pulley.cwasm"
+python3 - "$compiler" "$guest" "$artifacts" <<'PY'
+import json, pathlib, subprocess, sys, time
+
+compiler, guest, artifacts = map(pathlib.Path, sys.argv[1:])
+start = time.perf_counter_ns()
+subprocess.run([str(compiler), str(guest), "--metadata", "crates/netfyr-ovs/plugin.json",
+                "--output", str(artifacts / "ovs-native.cwasm")], check=True)
+elapsed_ms = (time.perf_counter_ns() - start) / 1_000_000
+(artifacts / "precompile.json").write_text(json.dumps({
+    "elapsed_ms": elapsed_ms,
+    "binary_bytes": compiler.stat().st_size,
+}, indent=2) + "\n")
+PY
 
 cargo tree --locked -p netfyr-plugin-runtime --no-default-features -e features >"$artifacts/features-native.txt"
-cargo tree --locked -p netfyr-plugin-runtime --no-default-features --features pulley -e features >"$artifacts/features-pulley.txt"
 
 source "$repo_root/tests/integration/plugins/lib/fixture.sh"
 trap ovs_fixture_cleanup EXIT
 ovs_fixture_start
 endpoint="$ovs_fixture_dir/sandbox/db.sock"
 ovs_fixture_exec ovsdb-server --version >"$artifacts/ovs-version.txt"
+config="$(python3 - "$endpoint" <<'PY'
+import json, sys
+print(json.dumps({"endpoint": sys.argv[1]}))
+PY
+)"
+query_args=(--config-json "$config" --allow-socket "$endpoint")
 
-"$output/compile/release/examples/query-with-plugins" --plugin "$guest" --ovsdb "$endpoint" --no-kernel >"$artifacts/compile.yaml"
-"$output/native/release/examples/query-with-plugins" --trusted-precompiled "$artifacts/ovs-native.cwasm" --ovsdb "$endpoint" --no-kernel >"$artifacts/native.yaml"
-"$output/pulley/release/examples/query-with-plugins" --trusted-precompiled "$artifacts/ovs-pulley.cwasm" --pulley --ovsdb "$endpoint" --no-kernel >"$artifacts/pulley.yaml"
+"$output/compile/release/examples/query-with-plugins" --plugin "$guest" --metadata "$repo_root/crates/netfyr-ovs/plugin.json" "${query_args[@]}" --no-kernel >"$artifacts/compile.yaml"
+"$output/native/release/examples/query-with-plugins" --trusted-precompiled "$artifacts/ovs-native.cwasm.json" "${query_args[@]}" --no-kernel >"$artifacts/native.yaml"
 cmp "$artifacts/compile.yaml" "$artifacts/native.yaml"
-cmp "$artifacts/compile.yaml" "$artifacts/pulley.yaml"
 
 python3 - "$output" "$artifacts" "$guest" "$endpoint" <<'PY'
 import json
@@ -65,16 +78,15 @@ if iterations < 1:
 
 variants = [
     ("baseline", "query-kernel", []),
-    ("compile", "query-with-plugins", ["--plugin", str(guest)]),
-    ("native", "query-with-plugins", ["--trusted-precompiled", str(artifacts / "ovs-native.cwasm")]),
-    ("pulley", "query-with-plugins", ["--trusted-precompiled", str(artifacts / "ovs-pulley.cwasm"), "--pulley"]),
+    ("compile", "query-with-plugins", ["--plugin", str(guest), "--metadata", "crates/netfyr-ovs/plugin.json"]),
+    ("native", "query-with-plugins", ["--trusted-precompiled", str(artifacts / "ovs-native.cwasm.json")]),
 ]
 results = []
 for variant, name, args in variants:
     binary = output / variant / "release" / "examples" / name
     records = [json.loads(line) for line in (artifacts / f"build-{variant}.jsonl").read_text().splitlines()]
     packages = sorted({r["package_id"] for r in records if r.get("reason") == "compiler-artifact"})
-    if variant in ("native", "pulley"):
+    if variant == "native":
         # cranelift-bitset is also an interpreter utility; its presence does
         # not mean a compiler was linked. Check the actual compiler packages.
         names = {p.rsplit("#", 1)[-1].split("@", 1)[0] for p in packages}
@@ -82,7 +94,7 @@ for variant, name, args in variants:
         assert names.isdisjoint(compilers), names & compilers
     command = [str(binary), *args]
     if variant != "baseline":
-        command += ["--ovsdb", endpoint]
+        command += ["--config-json", json.dumps({"endpoint": endpoint}), "--allow-socket", endpoint]
     elapsed = []
     for iteration in range(iterations + 3):
         start = time.perf_counter_ns()
@@ -109,7 +121,7 @@ report = {
     "ovs": (artifacts / "ovs-version.txt").read_text().strip(),
     "guest_bytes": guest.stat().st_size,
     "native_artifact_bytes": (artifacts / "ovs-native.cwasm").stat().st_size,
-    "pulley_artifact_bytes": (artifacts / "ovs-pulley.cwasm").stat().st_size,
+    "precompile": json.loads((artifacts / "precompile.json").read_text()),
     "warmups": 3,
     "iterations": iterations,
     "results": results,
@@ -120,5 +132,7 @@ print("\n| Variant | Stripped bytes | Packages built | Median query (ms) |")
 print("| --- | ---: | ---: | ---: |")
 for row in results:
     print(f'| {row["variant"]} | {row["binary_bytes"]:,} | {row["packages"]} | {row["median_ms"]:.2f} |')
+print(f'\nOne-time native precompilation: {report["precompile"]["elapsed_ms"]:.2f} ms')
+print(f'Precompiler binary: {report["precompile"]["binary_bytes"]:,} bytes')
 print(f"\nRaw measurements and feature trees: {artifacts}")
 PY

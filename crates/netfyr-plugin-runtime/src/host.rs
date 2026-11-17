@@ -8,7 +8,7 @@ use wasmtime::component::{Resource, ResourceTable};
 use wasmtime::{StoreLimits, StoreLimitsBuilder};
 
 use crate::bindings::netfyr::plugin::{host_log, host_unix_socket};
-use crate::{LogRecord, Policy};
+use crate::{Level, LogRecord, Policy};
 
 pub struct Connection(UnixStream);
 
@@ -68,6 +68,13 @@ impl host_log::Host for Host {
         if self.logs.len() >= 128 || message.len() > 4096 {
             return Err(wasmtime::Error::msg("plugin exceeded its logging budget"));
         }
+        let level = match level {
+            host_log::Level::Trace => Level::Trace,
+            host_log::Level::Debug => Level::Debug,
+            host_log::Level::Info => Level::Info,
+            host_log::Level::Warn => Level::Warn,
+            host_log::Level::Error => Level::Error,
+        };
         self.logs.push(LogRecord { level, message });
         Ok(())
     }

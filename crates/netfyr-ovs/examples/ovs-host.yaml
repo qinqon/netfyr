@@ -1,0 +1,11 @@
+# Host-local configuration for one instance of the OVS observer.
+# Copy to an operator-controlled plugin.d directory; edit both paths to query
+# another endpoint. Configuration alone never authorizes socket access.
+plugin: ovs
+enabled: true
+config:
+  endpoint: /run/openvswitch/db.sock
+grants:
+  unix-sockets:
+    - /run/openvswitch/db.sock
+timeout-ms: 5000
