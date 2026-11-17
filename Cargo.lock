@@ -712,6 +712,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "netfyr-plugin-overhead-probe"
+version = "0.1.0"
+dependencies = [
+ "libc",
+ "netfyr-ovs",
+ "netfyr-plugin-api",
+ "netfyr-plugin-runtime",
+ "netfyr-state",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "netfyr-plugin-precompile"
 version = "0.1.0"
 dependencies = [

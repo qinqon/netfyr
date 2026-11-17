@@ -1,0 +1,25 @@
+[package]
+name = "netfyr-plugin-overhead-probe"
+description = "Benchmark-only native OVS reference and precompiled Wasm comparison"
+publish = false
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version = "1.96"
+
+[features]
+default = []
+wasm = ["dep:netfyr-plugin-runtime"]
+
+[dependencies]
+netfyr-plugin-api = { path = "../../../../crates/netfyr-plugin-api" }
+netfyr-state = { path = "../../../../crates/netfyr-state" }
+netfyr-ovs = { path = "../../../../crates/netfyr-ovs" }
+# Optional only: the native reference must not link the Wasmtime runtime.
+netfyr-plugin-runtime = { path = "../../../../crates/netfyr-plugin-runtime", optional = true, default-features = false }
+# serde_json: identical config/result JSON plus machine-readable benchmark output.
+serde_json = "1"
+# tokio: mirror the production host's deadline-bounded Unix socket operations.
+tokio = { version = "1", features = ["rt", "net", "time", "io-util"] }
+# libc: Linux wait4 exposes per-child CPU times and peak RSS, unlike std::Child.
+libc = "0.2"

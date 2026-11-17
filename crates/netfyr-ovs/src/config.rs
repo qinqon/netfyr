@@ -4,7 +4,7 @@ use crate::Failure;
 
 /// Endpoint defaults and configuration decoding belong to the OVS provider,
 /// not the generic plugin host. Configuration never grants socket access.
-pub(crate) fn endpoint(config: &str) -> Result<String, Failure> {
+pub fn endpoint(config: &str) -> Result<String, Failure> {
     let config: serde_json::Value = serde_json::from_str(config)
         .map_err(|_| Failure::unsupported("invalid OVS configuration JSON"))?;
     let object = config

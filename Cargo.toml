@@ -11,6 +11,7 @@ members = [
     "crates/netfyr-ovs",
     "tests/integration/probe",
     "tests/integration/plugins/guest",
+    "tests/integration/plugins/overhead-probe",
 ]
 
 [workspace.package]

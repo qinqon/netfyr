@@ -7,13 +7,13 @@
 
 extern crate alloc;
 
-#[cfg(any(test, target_arch = "wasm32"))]
 mod config;
 mod protocol;
 mod topology;
 #[cfg(target_arch = "wasm32")]
 mod wasm;
 
+pub use config::endpoint;
 pub use protocol::{Failure, FailureKind, Transport, discover};
 pub use topology::{Device, Diagnostic, Snapshot};
 
